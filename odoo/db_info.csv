@@ -1,0 +1,2 @@
+url,database,host,port,user,password,sslmode
+localhost:8069,thokaka-o15,localhost,5432,odoo,odoo,prefer

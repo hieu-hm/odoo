@@ -6,6 +6,7 @@ import ast
 import cgi
 import collections
 import contextlib
+import csv
 import functools
 import hashlib
 import hmac
@@ -50,6 +51,7 @@ import odoo
 from .service.server import memory_info
 from .service import security, model as service_model
 from .tools.func import lazy_property
+from .tools import config
 from .tools import profiler
 from .tools import ustr, consteq, frozendict, pycompat, unique, date_utils
 from .tools.mimetypes import guess_mimetype
@@ -1508,6 +1510,15 @@ class Root(object):
 
             with request_manager:
                 db = request.session.db
+
+                path = os.path.join(config['root_path'], 'db_info.csv')
+                with open(path) as db_info_csv:
+                    reader = csv.DictReader(db_info_csv)
+                    for row in reader:
+                        if row['url'] == httprequest.host:
+                            db = row['database']
+                            break
+
                 if db:
                     try:
                         odoo.registry(db).check_signaling()

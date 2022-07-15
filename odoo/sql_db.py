@@ -9,9 +9,11 @@ the ORM does, in fact.
 """
 
 from contextlib import contextmanager
+import csv
 from functools import wraps
 import itertools
 import logging
+import os
 import time
 import uuid
 import warnings
@@ -23,6 +25,7 @@ import psycopg2.extensions
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, ISOLATION_LEVEL_READ_COMMITTED, ISOLATION_LEVEL_REPEATABLE_READ
 from psycopg2.pool import PoolError
 from werkzeug import urls
+from .tools import config
 
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 
@@ -726,6 +729,16 @@ def connection_info_for(db_or_uri):
     :param str db_or_uri: database name or postgres dsn
     :rtype: (str, dict)
     """
+
+    path = os.path.join(config['root_path'], 'db_info.csv')
+    with open(path) as db_info_csv:
+        reader = csv.DictReader(db_info_csv)
+        for row in reader:
+            if row['database'] == db_or_uri:
+                connection_info = dict(row)
+                del connection_info['url']
+                return db_or_uri, connection_info
+
     if db_or_uri.startswith(('postgresql://', 'postgres://')):
         # extract db from uri
         us = urls.url_parse(db_or_uri)
